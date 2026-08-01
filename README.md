@@ -10,7 +10,6 @@ This is an automated workflow built with n8n. It periodically fetches AI and tec
 使用方法
 1️⃣ 导入工作流
 打开 n8n → Import from File → 选择 workflow.json
-
 2️⃣ 替换占位符（必需）
 占位符	在哪里找
 YOUR_APP_ID	飞书开发者后台 → 应用凭证
