@@ -35,7 +35,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n    \"app_id": "YOUR_APP_ID"\",\n    \"app_secret": "YOUR_APP_SECRET"}",
+        "jsonBody": "{\n    \"app_id\": \"cli_aadde7ba43f85bd3\",\n    \"app_secret": "YOUR_APP_SECRET"}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -63,7 +63,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\nlet rawNews = '';\nfor (const item of items.slice(0, 20)) {\n  const json = item.json;\n  const title = json.title || '无标题';\n  const summary = json.contentsnippet || json.content || '暂无摘要';\n  const link = json.link || '';\n  const pubDate = json.pubDate ? new Date(json.pubDate).toLocaleDateString('zh-CN') : '';\n  rawNews += `标题：${title}\\n摘要：${summary}\\n发布时间：${pubDate}\\n链接：${link}\\n\\n`;\n}\n\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\n\nconst userContent = `今天是 ${today}。请从今日新闻中筛选出5条对普通人生活有影响的AI/科技动态。保留1-2条有技术深度的内容（如芯片、模型突破、研发进展），其余重点选和日常生活相关的应用（如工具更新、消费方式变化、娱乐新玩法）。每条按以下格式输出：\n\n【日期】分类 标题\n- 发生了什么（写清事件、主体、数据，尽量带发布日期）\n- 对行业意味着什么（趋势判断）\n- 对人类生活意味着什么：这件事会怎样改变人们的工作、消费、娱乐或社交方式（写具体场景，越真实越好）\n- 原文链接：[链接]\n\n输出要求：\n- 每条开头带日期\n- 直接输出，不要开场白和结束语\n- 不要万能空话\n- 英文新闻翻译成中文\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst payload = {\n  model: \"deepseek-chat\",\n  max_tokens: 2000,\n  temperature: 0.7,\n  messages: [\n    {\n      role: \"system\",\n      content: \"你是一个新闻筛选器。只选AI/科技相关新闻。不选就业政策、考研、创业补贴、教育制度。\"\n    },\n    {\n      role: \"user\",\n      content: userContent\n    }\n  ]\n};\n\nreturn {\n  bodyString: JSON.stringify(payload)\n};"
+        "jsCode": "const items = $input.all();\n\nlet rawNews = '';\nfor (const item of items.slice(0, 15)) {\n  const json = item.json;\n  const title = json.title || '无标题';\n  const summary = json.contentsnippet || json.content || '';\n  const link = json.link || '';  // ← 新增：提取链接\n  rawNews += `标题：${title}\\n摘要：${summary}\\n链接：${link}\\n\\n`;  // ← 新增：链接拼进去\n}\n\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst userContent = `今天是 ${today}。请从今日新闻中筛选出5条对普通人生活有影响的AI/科技动态。保留1-2条有技术深度的内容，其余重点选和日常生活相关的应用（如工具更新、消费方式变化、娱乐新玩法）。\n\n请以 JSON 数组格式输出，每条新闻必须包含以下字段：\n- date（日期，格式为 YYYYMMDD）\n- category（分类，如 AI模型、智能家居、移动支付、手机产业 等）\n- title（标题）\n- event（发生了什么，写清事件、主体、数据）\n- industryImpact（对行业意味着什么，趋势判断）\n- humanImpact（对人类生活意味着什么，写具体场景）\n- link（原文链接，如果没有则填 \"\"）\n\n输出要求：\n- 直接输出 JSON 数组，不要开场白和结束语\n- 不要输出 reasoning_content\n- 不要万能空话\n- 英文新闻翻译成中文\n- 如果筛选出的内容少于5条，有多少条就输出多少条，不要空着。\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst payload = {\n  model: \"deepseek-v4-flash\",\n  max_tokens: 4000,\n  temperature: 0.7,\n  messages: [\n    {\n      role: \"system\",\n      content: \"你是一个新闻筛选器。只选AI/科技相关新闻。不选就业政策、考研、创业补贴、教育制度。\"\n    },\n    {\n      role: \"user\",\n      content: userContent\n    }\n  ]\n};\n\nreturn {\n  bodyString: JSON.stringify(payload)\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
     },
     {
       "parameters": {
-        "url": "https://www.ifanr.com/feed",
+        "url": "https://sspai.com/feed",
         "options": {}
       },
       "type": "n8n-nodes-base.rssFeedRead",
@@ -146,7 +146,7 @@
     {
       "parameters": {
         "method": "POST",
-       "url": "YOUR_FEISHU_WEBHOOK"
+        "url": "YOUR_FEISHU_WEBHOOK"
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -178,13 +178,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\nlet content = '';\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const message = json.choices[0].message;\n    if (message && message.content) {\n      content += message.content + '\\n\\n';\n    }\n  }\n}\n\nif (!content.trim()) {\n  return {\n    message: '今日暂无AI新闻。'\n  };\n}\n\nconst safeMessage = content\n  .replace(/\\\\/g, '\\\\\\\\')\n  .replace(/\"/g, '\\\\\"')\n  .replace(/\\n/g, '\\\\n');\n\nreturn {\n  message: safeMessage\n};"
+        "jsCode": "const items = $input.all();\n\nlet content = '';\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const message = json.choices[0].message;\n    if (message && message.content) {\n      try {\n        let rawContent = message.content.trim();\n        // 去掉开头的 ```json 和结尾的 ```\n        rawContent = rawContent.replace(/^```json\\s*/, '');\n        rawContent = rawContent.replace(/```\\s*$/, '');\n        const parsed = JSON.parse(rawContent);\n        if (Array.isArray(parsed)) {\n          const lines = parsed.map((item, idx) => {\n            return `${idx+1}. 【${item.date || ''}】${item.category || ''} ${item.title || ''}\\n- 发生了什么：${item.event || ''}\\n- 对行业意味着什么：${item.industryImpact || ''}\\n- 对人类生活意味着什么：${item.humanImpact || ''}\\n- 原文链接：${item.link || '暂无'}`;\n          });\n          content += lines.join('\\n\\n') + '\\n\\n';\n        } else {\n          content += message.content + '\\n\\n';\n        }\n      } catch (e) {\n        content += message.content + '\\n\\n';\n      }\n    }\n  }\n}\n\nif (!content.trim()) {\n  return {\n    message: '今日暂无AI新闻。'\n  };\n}\n\nconst safeMessage = content\n  .replace(/\\\\/g, '\\\\\\\\')\n  .replace(/\"/g, '\\\\\"')\n  .replace(/\\n/g, '\\\\n');\n\nreturn {\n  message: safeMessage\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -80,
-        -96
+        -80
       ],
       "id": "f71d7dc4-40c1-4d5b-a421-7a839db11789",
       "name": "Code in JavaScript1"
@@ -243,7 +243,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://open.feishu.cn/open-apis/bitable/v1/apps/YOUR_APP_TOKEN/tables/YOUR_TABLE_ID/records",
+        "url": "https://open.feishu.cn/open-apis/bitable/v1/apps/EVqtbXEdaajqrNsZTR1cpSU5nqP/tables/tbl7UcavtkYWLKVN/records",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -477,7 +477,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "5c8beb8d-dfa1-442d-b5ea-ca5dae4517fc",
+  "versionId": "cee2f35b-ab84-4ad6-93c2-a21b74b3cf8d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fa1c0a861cdda9bce486927e6c6a87b8408ca6fec179471a6e4a8360e78f1394"
