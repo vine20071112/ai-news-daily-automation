@@ -35,7 +35,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n    \"app_id\": \"cli_aadde7ba43f85bd3\",\n    \"app_secret": "YOUR_APP_SECRET"}",
+        "jsonBody": "{\n    \"app_id\": \"YOUR_APP_ID\",\n    \"app_secret": "YOUR_APP_SECRET"}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -243,7 +243,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://open.feishu.cn/open-apis/bitable/v1/apps/EVqtbXEdaajqrNsZTR1cpSU5nqP/tables/tbl7UcavtkYWLKVN/records",
+        "url": "YOUR_APP_TOKEN",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
