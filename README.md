@@ -7,6 +7,7 @@ An n8n-based workflow for automated AI news aggregation, analysis, and delivery 
 
 English
 This is an automated workflow built with n8n. It periodically fetches AI and tech news from multiple RSS sources, uses the DeepSeek LLM to filter the 5 most valuable updates for daily life, automatically pushes them to a Feishu group chat, and archives them into a Feishu multidimensional table. The entire process runs automatically without human intervention, helping individuals or teams efficiently stay informed and save time on daily information filtering.
+
 使用方法
 1️⃣ 导入工作流
 打开 n8n → Import from File → 选择 workflow.json
