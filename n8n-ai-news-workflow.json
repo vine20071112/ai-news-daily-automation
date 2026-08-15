@@ -1,1 +1,890 @@
 
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1440,
+        256
+      ],
+      "id": "03d1adca-9ab4-4ec0-a24b-74d772737c12",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://hnrss.org/frontpage",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1216,
+        -32
+      ],
+      "id": "bef4d53a-bbad-418b-be5f-ae44867ae989",
+      "name": "RSS Read",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 手动合并所有批次的数据\nlet allNews = [];\nfor (const item of items) {\n  const data = item.json || item;\n  if (Array.isArray(data)) {\n    allNews.push(...data);\n  } else {\n    allNews.push(data);\n  }\n}\n\nif (allNews.length === 0) {\n  return {\n    userContent: '今日暂无科技新闻。',\n    escapedUserContent: '\"\"',\n    debugInfo: { totalInput: 0, validNews: 0, skippedNews: 0 }\n  };\n}\n\n// 去重\nconst seenTitles = new Set();\nconst uniqueNews = [];\nfor (const item of allNews) {\n  const title = item.title || item.标题 || '';\n  if (title && !seenTitles.has(title)) {\n    seenTitles.add(title);\n    uniqueNews.push(item);\n  }\n}\n\n// 限制条数\nlet rawNews = '';\nlet validCount = 0;\nfor (const item of uniqueNews.slice(0, 20)) {\n  const data = item.json || item;\n  const title = data.title || data.标题 || '无标题';\n  const summary = data.contentsnippet || data.content || data.摘要 || data.summary || '暂无摘要';\n  const link = data.link || data.链接 || '';\n  rawNews += `标题：${title}\\n摘要：${summary}\\n链接：${link}\\n\\n`;\n  validCount++;\n}\n\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst userContent = `今天是 ${today}。请从以下新闻中筛选出5条对普通人日常生活有实际影响的科技动态。\n\n【强制阅读流程】\n1. 你必须逐条阅读下面列出的每一条新闻（包括标题、摘要、链接和来源）。\n2. 不允许只看前几条就做决定，必须看完列表中所有新闻。\n3. 阅读全部完成后，再根据下方标准选出 5 条最有价值的新闻。\n4. 如果你没有阅读全部新闻就提前输出结果，本次回答将被视为无效，需要重新生成。\n\n【硬性选择标准】\n优先选择以下内容：\n1. 新产品发布或重大功能更新\n2. 即将影响用户日常体验的技术应用\n3. 价格变化或商业模式调整\n\n【来源多样性要求】\n- 不要只选同一个来源的新闻，如果多个来源都有符合条件的内容，尽量均衡选取。\n\n【输出要求】\n请以 JSON 数组格式输出，每条新闻包含以下字段：\n- date（日期，格式为 YYYY年MM月DD日）\n- category（分类）\n- title（标题）\n- event（发生了什么，请用\"几月几号\"开头）\n- industryImpact（对行业意味着什么）\n- humanImpact（对普通人意味着什么）\n- source（来源，如 少数派 / GitHub / 虎嗅）\n- link（原文链接）\n\n【输出格式】\n- 直接输出 JSON 数组，不要开场白和结束语。\n- 不要输出 reasoning_content。\n- 如果筛选出的内容少于5条，有多少条就输出多少条，不要空着。\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst escapedUserContent = JSON.stringify(userContent);\n\nreturn {\n  userContent: userContent,\n  escapedUserContent: escapedUserContent,\n  debugInfo: {\n    totalInput: allNews.length,\n    validNews: validCount,\n    skippedNews: allNews.length - validCount\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        352
+      ],
+      "id": "8dcc7305-ffdb-44e0-a7f7-06fb4657f30a",
+      "name": "Code in JavaScript",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "https://sspai.com/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1216,
+        352
+      ],
+      "id": "cd16eb80-cf2a-45dc-83de-577eac2f36ca",
+      "name": "RSS Read1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://rss.huxiu.com/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1216,
+        544
+      ],
+      "id": "0f2d50c9-1a96-4e9d-9bcb-cbe9529371b1",
+      "name": "RSS Read2",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://www.gdufe888.top/api/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1216,
+        160
+      ],
+      "id": "8139d9dc-4025-4af0-b0e2-17969d6108fa",
+      "name": "RSS Read3",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "YOUR_FEISHU_WEBHOOK",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.feishuBody }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        800,
+        288
+      ],
+      "id": "7c335ba8-56c7-4c61-9fd7-46749ecc44d0",
+      "name": "发送消息"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"model\": \"deepseek-chat\",\n  \"max_tokens\": 6000,\n  \"temperature\": 0.3,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"你是一个新闻筛选器。只选AI/科技相关新闻。不选就业政策、考研、创业补贴、教育制度。\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ $json.escapedUserContent }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        352
+      ],
+      "id": "0b9ab2ff-7bc5-4192-8d41-eedb9b072bce",
+      "name": "deep seek",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "TMiON71r80EHfQpd",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 手动合并所有批次的数据\nlet allNews = [];\nfor (const item of items) {\n  const data = item.json || item;\n  if (Array.isArray(data)) {\n    allNews.push(...data);\n  } else {\n    allNews.push(data);\n  }\n}\n\nif (allNews.length === 0) {\n  return {\n    userContent: '今日暂无科技新闻。',\n    escapedUserContent: '\"\"',\n    debugInfo: { totalInput: 0, validNews: 0, skippedNews: 0 }\n  };\n}\n\n// 去重\nconst seenTitles = new Set();\nconst uniqueNews = [];\nfor (const item of allNews) {\n  const title = item.title || item.标题 || '';\n  if (title && !seenTitles.has(title)) {\n    seenTitles.add(title);\n    uniqueNews.push(item);\n  }\n}\n\n// 限制条数\nlet rawNews = '';\nlet validCount = 0;\nfor (const item of uniqueNews.slice(0, 20)) {\n  const data = item.json || item;\n  const title = data.title || data.标题 || '无标题';\n  const summary = data.contentsnippet || data.content || data.摘要 || data.summary || '暂无摘要';\n  const link = data.link || data.链接 || '';\n  rawNews += `标题：${title}\\n摘要：${summary}\\n链接：${link}\\n\\n`;\n  validCount++;\n}\n\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst userContent = `今天是 ${today}。请从以下新闻中筛选出5条对普通人日常生活有实际影响的科技动态。\n\n【强制阅读流程】\n1. 你必须逐条阅读下面列出的每一条新闻（包括标题、摘要、链接和来源）。\n2. 不允许只看前几条就做决定，必须看完列表中所有新闻。\n3. 阅读全部完成后，再根据下方标准选出 5 条最有价值的新闻。\n4. 如果你没有阅读全部新闻就提前输出结果，本次回答将被视为无效，需要重新生成。\n\n【硬性选择标准】\n优先选择以下内容：\n1. 新产品发布或重大功能更新\n2. 即将影响用户日常体验的技术应用\n3. 价格变化或商业模式调整\n\n【来源多样性要求】\n- 不要只选同一个来源的新闻，如果多个来源都有符合条件的内容，尽量均衡选取。\n\n【输出要求】\n请以 JSON 数组格式输出，每条新闻包含以下字段：\n- date（日期，格式为 YYYY年MM月DD日）\n- category（分类）\n- title（标题）\n- event（发生了什么，请用\"几月几号\"开头）\n- industryImpact（对行业意味着什么）\n- humanImpact（对普通人意味着什么）\n- source（来源，如 少数派 / GitHub / 虎嗅）\n- link（原文链接）\n\n【输出格式】\n- 直接输出 JSON 数组，不要开场白和结束语。\n- 不要输出 reasoning_content。\n- 如果筛选出的内容少于5条，有多少条就输出多少条，不要空着。\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst escapedUserContent = JSON.stringify(userContent);\n\nreturn {\n  userContent: userContent,\n  escapedUserContent: escapedUserContent,\n  debugInfo: {\n    totalInput: allNews.length,\n    validNews: validCount,\n    skippedNews: allNews.length - validCount\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        160
+      ],
+      "id": "9007bc58-f740-4a10-809c-20670c24df04",
+      "name": "Code in JavaScript4",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 手动合并所有批次的数据\nlet allNews = [];\nfor (const item of items) {\n  const data = item.json || item;\n  if (Array.isArray(data)) {\n    allNews.push(...data);\n  } else {\n    allNews.push(data);\n  }\n}\n\nif (allNews.length === 0) {\n  return {\n    userContent: '今日暂无科技新闻。',\n    escapedUserContent: '\"\"',\n    debugInfo: { totalInput: 0, validNews: 0, skippedNews: 0 }\n  };\n}\n\n// 去重\nconst seenTitles = new Set();\nconst uniqueNews = [];\nfor (const item of allNews) {\n  const title = item.title || item.标题 || '';\n  if (title && !seenTitles.has(title)) {\n    seenTitles.add(title);\n    uniqueNews.push(item);\n  }\n}\n\n// 限制条数\nlet rawNews = '';\nlet validCount = 0;\nfor (const item of uniqueNews.slice(0, 20)) {\n  const data = item.json || item;\n  const title = data.title || data.标题 || '无标题';\n  const summary = data.contentsnippet || data.content || data.摘要 || data.summary || '暂无摘要';\n  const link = data.link || data.链接 || '';\n  rawNews += `标题：${title}\\n摘要：${summary}\\n链接：${link}\\n\\n`;\n  validCount++;\n}\n\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst userContent = `今天是 ${today}。请从以下新闻中筛选出5条对普通人日常生活有实际影响的科技动态。\n\n【强制阅读流程】\n1. 你必须逐条阅读下面列出的每一条新闻（包括标题、摘要、链接和来源）。\n2. 不允许只看前几条就做决定，必须看完列表中所有新闻。\n3. 阅读全部完成后，再根据下方标准选出 5 条最有价值的新闻。\n4. 如果你没有阅读全部新闻就提前输出结果，本次回答将被视为无效，需要重新生成。\n\n【硬性选择标准】\n优先选择以下内容：\n1. 新产品发布或重大功能更新\n2. 即将影响用户日常体验的技术应用\n3. 价格变化或商业模式调整\n\n【来源多样性要求】\n- 不要只选同一个来源的新闻，如果多个来源都有符合条件的内容，尽量均衡选取。\n\n【输出要求】\n请以 JSON 数组格式输出，每条新闻包含以下字段：\n- date（日期，格式为 YYYY年MM月DD日）\n- category（分类）\n- title（标题）\n- event（发生了什么，请用\"几月几号\"开头）\n- industryImpact（对行业意味着什么）\n- humanImpact（对普通人意味着什么）\n- source（来源，如 少数派 / GitHub / 虎嗅）\n- link（原文链接）\n\n【输出格式】\n- 直接输出 JSON 数组，不要开场白和结束语。\n- 不要输出 reasoning_content。\n- 如果筛选出的内容少于5条，有多少条就输出多少条，不要空着。\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst escapedUserContent = JSON.stringify(userContent);\n\nreturn {\n  userContent: userContent,\n  escapedUserContent: escapedUserContent,\n  debugInfo: {\n    totalInput: allNews.length,\n    validNews: validCount,\n    skippedNews: allNews.length - validCount\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        544
+      ],
+      "id": "f4293a1c-2ab5-48b8-8b95-fdd0100af9ce",
+      "name": "Code in JavaScript3",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"model\": \"deepseek-chat\",\n  \"max_tokens\": 6000,\n  \"temperature\": 0.3,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"你是一个新闻筛选器。只选AI/科技相关新闻。不选就业政策、考研、创业补贴、教育制度。\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ $json.escapedUserContent }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        544
+      ],
+      "id": "f2e8c0cb-c734-442f-87a4-e46bffbd4d6c",
+      "name": "deep seek1",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "TMiON71r80EHfQpd",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"model\": \"deepseek-chat\",\n  \"max_tokens\": 6000,\n  \"temperature\": 0.3,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"你是一个新闻筛选器。只选AI/科技相关新闻。不选就业政策、考研、创业补贴、教育制度。\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ $json.escapedUserContent }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        160
+      ],
+      "id": "3a1dc268-aa69-4a30-8afd-9c5fb7ac1c4f",
+      "name": "deep seek2",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "TMiON71r80EHfQpd",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 手动合并所有批次的数据\nlet allNews = [];\nfor (const item of items) {\n  const data = item.json || item;\n  if (Array.isArray(data)) {\n    allNews.push(...data);\n  } else {\n    allNews.push(data);\n  }\n}\n\nif (allNews.length === 0) {\n  return {\n    userContent: '今日暂无科技新闻。',\n    escapedUserContent: '\"\"',\n    debugInfo: { totalInput: 0, validNews: 0, skippedNews: 0 }\n  };\n}\n\n// 去重\nconst seenTitles = new Set();\nconst uniqueNews = [];\nfor (const item of allNews) {\n  const title = item.title || item.标题 || '';\n  if (title && !seenTitles.has(title)) {\n    seenTitles.add(title);\n    uniqueNews.push(item);\n  }\n}\n\n// 限制条数\nlet rawNews = '';\nlet validCount = 0;\nfor (const item of uniqueNews.slice(0, 20)) {\n  const data = item.json || item;\n  const title = data.title || data.标题 || '无标题';\n  const summary = data.contentsnippet || data.content || data.摘要 || data.summary || '暂无摘要';\n  const link = data.link || data.链接 || '';\n  rawNews += `标题：${title}\\n摘要：${summary}\\n链接：${link}\\n\\n`;\n  validCount++;\n}\n\nconst today = new Date().toISOString().slice(0, 10).replace(/-/g, '');\nconst userContent = `今天是 ${today}。请从以下新闻中筛选出5条对普通人日常生活有实际影响的科技动态。\n\n【强制阅读流程】\n1. 你必须逐条阅读下面列出的每一条新闻（包括标题、摘要、链接和来源）。\n2. 不允许只看前几条就做决定，必须看完列表中所有新闻。\n3. 阅读全部完成后，再根据下方标准选出 5 条最有价值的新闻。\n4. 如果你没有阅读全部新闻就提前输出结果，本次回答将被视为无效，需要重新生成。\n\n【硬性选择标准】\n优先选择以下内容：\n1. 新产品发布或重大功能更新\n2. 即将影响用户日常体验的技术应用\n3. 价格变化或商业模式调整\n\n【来源多样性要求】\n- 不要只选同一个来源的新闻，如果多个来源都有符合条件的内容，尽量均衡选取。\n\n【输出要求】\n请以 JSON 数组格式输出，每条新闻包含以下字段：\n- date（日期，格式为 YYYY年MM月DD日）\n- category（分类）\n- title（标题）\n- event（发生了什么，请用\"几月几号\"开头）\n- industryImpact（对行业意味着什么）\n- humanImpact（对普通人意味着什么）\n- source（来源，如 少数派 / GitHub / 虎嗅）\n- link（原文链接）\n\n【输出格式】\n- 直接输出 JSON 数组，不要开场白和结束语。\n- 不要输出 reasoning_content。\n- 如果筛选出的内容少于5条，有多少条就输出多少条，不要空着。\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst escapedUserContent = JSON.stringify(userContent);\n\nreturn {\n  userContent: userContent,\n  escapedUserContent: escapedUserContent,\n  debugInfo: {\n    totalInput: allNews.length,\n    validNews: validCount,\n    skippedNews: allNews.length - validCount\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        -32
+      ],
+      "id": "3144e44d-5509-419f-8c69-ecac2c18a597",
+      "name": "Code in JavaScript5",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"model\": \"deepseek-chat\",\n  \"max_tokens\": 6000,\n  \"temperature\": 0.3,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"你是一个新闻筛选器。只选AI/科技相关新闻。不选就业政策、考研、创业补贴、教育制度。\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ $json.escapedUserContent }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        -32
+      ],
+      "id": "b1dbaa39-f38d-4c71-ab3a-04200cb03529",
+      "name": "deep seek3",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "TMiON71r80EHfQpd",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 从 DeepSeek 响应中提取新闻数组\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const content = json.choices[0].message.content;\n    if (content) {\n      try {\n        // 清理 Markdown 代码块\n        let cleanContent = content.trim();\n        const codeBlockMatch = cleanContent.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n        if (codeBlockMatch) {\n          cleanContent = codeBlockMatch[1];\n        }\n        const parsed = JSON.parse(cleanContent);\n        if (Array.isArray(parsed) && parsed.length > 0) {\n          // 直接返回解析后的数组\n          return parsed;\n        }\n      } catch (e) {\n        // 解析失败，返回空数组\n        console.error('解析失败：', e);\n        return [];\n      }\n    }\n  }\n}\n\n// 如果没有数据，返回空数组\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        160
+      ],
+      "id": "63f3109b-8bd5-49fe-a9df-b9573389ba0d",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 从 DeepSeek 响应中提取新闻数组\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const content = json.choices[0].message.content;\n    if (content) {\n      try {\n        // 清理 Markdown 代码块\n        let cleanContent = content.trim();\n        const codeBlockMatch = cleanContent.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n        if (codeBlockMatch) {\n          cleanContent = codeBlockMatch[1];\n        }\n        const parsed = JSON.parse(cleanContent);\n        if (Array.isArray(parsed) && parsed.length > 0) {\n          // 直接返回解析后的数组\n          return parsed;\n        }\n      } catch (e) {\n        // 解析失败，返回空数组\n        console.error('解析失败：', e);\n        return [];\n      }\n    }\n  }\n}\n\n// 如果没有数据，返回空数组\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        352
+      ],
+      "id": "b0c66ebc-cc7e-4e8f-a860-50282a65f30d",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 从 DeepSeek 响应中提取新闻数组\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const content = json.choices[0].message.content;\n    if (content) {\n      try {\n        // 清理 Markdown 代码块\n        let cleanContent = content.trim();\n        const codeBlockMatch = cleanContent.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n        if (codeBlockMatch) {\n          cleanContent = codeBlockMatch[1];\n        }\n        const parsed = JSON.parse(cleanContent);\n        if (Array.isArray(parsed) && parsed.length > 0) {\n          // 直接返回解析后的数组\n          return parsed;\n        }\n      } catch (e) {\n        // 解析失败，返回空数组\n        console.error('解析失败：', e);\n        return [];\n      }\n    }\n  }\n}\n\n// 如果没有数据，返回空数组\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        544
+      ],
+      "id": "75c64aa0-0516-4078-91f6-9b229d417061",
+      "name": "Code in JavaScript8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 从 DeepSeek 响应中提取新闻数组\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const content = json.choices[0].message.content;\n    if (content) {\n      try {\n        // 清理 Markdown 代码块\n        let cleanContent = content.trim();\n        const codeBlockMatch = cleanContent.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n        if (codeBlockMatch) {\n          cleanContent = codeBlockMatch[1];\n        }\n        const parsed = JSON.parse(cleanContent);\n        if (Array.isArray(parsed) && parsed.length > 0) {\n          // 直接返回解析后的数组\n          return parsed;\n        }\n      } catch (e) {\n        // 解析失败，返回空数组\n        console.error('解析失败：', e);\n        return [];\n      }\n    }\n  }\n}\n\n// 如果没有数据，返回空数组\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        -32
+      ],
+      "id": "19f9d0fd-c188-4901-8881-9448fe503774",
+      "name": "Code in JavaScript9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet allNews = [];\nfor (const item of items) {\n  const data = item.json || item;\n  if (Array.isArray(data)) {\n    allNews = allNews.concat(data);\n  } else {\n    allNews.push(data);\n  }\n}\n\n// 限制最多20条\nif (allNews.length > 20) {\n  allNews = allNews.slice(0, 20);\n}\n\nreturn allNews;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        304
+      ],
+      "id": "e4d9019c-d229-46e7-8ed1-866f42f4cbe4",
+      "name": "汇总数据"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.requestBodyString }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        320,
+        320
+      ],
+      "id": "2c4d7159-5504-46f6-adf3-12509aa24cf2",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "TMiON71r80EHfQpd",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet rawNews = '';\nlet index = 1;\n\n// 从所有输入中提取新闻数据\nlet newsArray = [];\nfor (const item of items) {\n  const data = item.json || item;\n  \n  if (Array.isArray(data)) {\n    newsArray = newsArray.concat(data);\n  } else if (data.title || data.event || data.summary) {\n    newsArray.push(data);\n  } else if (data.json && Array.isArray(data.json)) {\n    newsArray = newsArray.concat(data.json);\n  } else if (data.data && Array.isArray(data.data)) {\n    newsArray = newsArray.concat(data.data);\n  }\n}\n\n// 限制最多 20 条\nif (newsArray.length > 20) {\n  newsArray = newsArray.slice(0, 20);\n}\n\n// 如果没有新闻数据，返回占位\nif (newsArray.length === 0) {\n  const userContent = `请从以下新闻中选出 5 条最有价值的新闻。直接输出 JSON 数组，每条包含：date, category, title, event, industryImpact, humanImpact, source, link。\\n\\n新闻如下：\\n\\n暂无新闻。`;\n  const requestBody = {\n    model: \"deepseek-chat\",\n    max_tokens: 2000,\n    temperature: 0.2,\n    messages: [\n      { role: \"system\", content: \"你是一个新闻筛选器，从候选新闻中选出 5 条最有价值的。\" },\n      { role: \"user\", content: userContent }\n    ]\n  };\n  return { requestBodyString: JSON.stringify(requestBody) };\n}\n\n// 随机打乱顺序（消除顺序偏见）\nfor (let i = newsArray.length - 1; i > 0; i--) {\n  const j = Math.floor(Math.random() * (i + 1));\n  [newsArray[i], newsArray[j]] = [newsArray[j], newsArray[i]];\n}\n\n// 构造新闻列表\nfor (const item of newsArray) {\n  const title = item.title || '无标题';\n  const event = item.event || item.summary || '';\n  const source = item.source || '未知';\n  const link = item.link || '';\n  rawNews += `${index}. ${title}（来源：${source}）\\n事件：${event}\\n链接：${link}\\n\\n`;\n  index++;\n}\n\n// 构造提示词（含公平评估指令、硬性排除标准、软性限制）\nconst userContent = `请公平阅读所有新闻，不要因为排在前面的新闻就优先选择，也不要忽略后面的新闻。你必须逐条评估每一条新闻的内容，然后选出 5 条最有价值的新闻。\n\n【硬性选择标准】\n优先选择以下内容：\n1. 新产品发布或重大功能更新\n2. 即将影响用户日常体验的技术应用\n3. 价格变化或商业模式调整\n\n【硬性排除标准】\n以下内容直接跳过，不要选入最终结果：\n1. 公司内部人事调动（如高管离职、任命、组织架构调整）——完全排除，不得选入\n2. 公司财报、营收数据、股价波动\n3. 政策文件发布（除非涉及具体民生措施）\n4. 行业论坛、峰会、展会报道（除非有具体产品发布）\n5. 纯学术论文发布（除非有明确的商业化应用前景）\n6. 公司战略声明或愿景发布（空洞内容）\n\n【额外软性限制】\n- 以下主题的新闻如果出现，最多只允许选入 1 条：\n  - 融资、A轮、B轮、C轮、天使轮、Pre-A轮、投融资、募资、融资轮次\n- 如果有多条此类新闻，只保留最相关的一条，其余用其他普通科技新闻替代。\n\n直接输出 JSON 数组，每条包含：date, category, title, event, industryImpact, humanImpact, source, link。\n\n新闻如下：\\n\\n${rawNews}`;\n\nconst requestBody = {\n  model: \"deepseek-chat\",\n  max_tokens: 2000,\n  temperature: 0.2,\n  messages: [\n    { role: \"system\", content: \"你是一个新闻筛选器，从候选新闻中选出 5 条最有价值的。\" },\n    { role: \"user\", content: userContent }\n  ]\n};\n\nreturn { requestBodyString: JSON.stringify(requestBody) };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        96,
+        352
+      ],
+      "id": "65eb39f1-b3e3-42e7-ba58-4c6863448f4c",
+      "name": "翻译"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet content = '';\n\nfor (const item of items) {\n  const json = item.json;\n  if (json.choices && json.choices.length > 0) {\n    const message = json.choices[0].message;\n    if (message && message.content) {\n      try {\n        let raw = message.content.trim();\n        const codeBlockMatch = raw.match(/```json\\s*([\\s\\S]*?)\\s*```/);\n        if (codeBlockMatch) raw = codeBlockMatch[1];\n        const parsed = JSON.parse(raw);\n        if (Array.isArray(parsed)) {\n          content = parsed.map((item, idx) => {\n            return `${idx+1}. 【${item.date || ''}】${item.category || ''} ${item.title || ''}（来源：${item.source || '未知'}）\\n- 发生了什么：${item.event || ''}\\n- 对行业意味着什么：${item.industryImpact || ''}\\n- 对人类生活意味着什么：${item.humanImpact || ''}\\n- 原文链接：${item.link || '暂无'}`;\n          }).join('\\n\\n');\n        } else {\n          content = raw;\n        }\n      } catch (e) {\n        content = message.content;\n      }\n    }\n  }\n}\n\nif (!content.trim()) {\n  return { \n    feishuBody: JSON.stringify({\n      msg_type: \"text\",\n      content: { text: \"今日暂无AI新闻。\" }\n    })\n  };\n}\n\n// 清理所有不可见控制字符\ncontent = content.replace(/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F\\x80-\\x9F\\u200B-\\u200D\\uFEFF]/g, '');\n\n// 手动构造飞书消息的 JSON 字符串\nconst feishuBody = JSON.stringify({\n  msg_type: \"text\",\n  content: {\n    text: content\n  }\n});\n\nreturn {\n  feishuBody: feishuBody\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        320
+      ],
+      "id": "f71d7dc4-40c1-4d5b-a421-7a839db11789",
+      "name": "二次翻译"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -272,
+        288
+      ],
+      "id": "ec139dc2-8d60-4d91-b121-fcd00c1c7df0",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"app_id\": \"YOUR_APP_ID",\n  \"app_secret\": \"YOUR_APP_SECRET"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1056,
+        768
+      ],
+      "id": "1bfa9e32-fa67-4e82-9ea0-cea53205e8a8",
+      "name": "获取token"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet token = '';\nlet newsItems = [];\n\nfor (const item of items) {\n  const data = item.json || item;\n  \n  // 提取 token（来自获取 token 节点）\n  if (data.tenant_access_token) {\n    token = data.tenant_access_token;\n  }\n  \n  // 提取新闻数据（来自二次翻译节点）\n  if (Array.isArray(data)) {\n    newsItems = newsItems.concat(data);\n  } else if (data.title || data.link || data.summary || data.source) {\n    newsItems.push(data);\n  }\n}\n\n// 如果 token 和新闻都存在，合并输出\nif (token && newsItems.length > 0) {\n  return newsItems.map(item => ({\n    json: {\n      tenant_access_token: token,\n      title: item.title || '',\n      link: item.link || '',\n      summary: item.summary || '',\n      source: item.source || '',\n      date: item.date || ''\n    }\n  }));\n} else {\n  // 如果数据不完整，返回错误信息\n  return [{\n    json: {\n      error: '缺少 token 或新闻数据',\n      token_exists: !!token,\n      news_count: newsItems.length\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        912
+      ],
+      "id": "9e9c90bc-fbfd-40e7-979c-9575ee69be29",
+      "name": "合并数据",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet newsData = [];\n\nfor (const item of items) {\n  const data = item.json || item;\n  \n  // 提取 feishuBody 内容\n  const feishuBody = data.feishuBody || '';\n  if (!feishuBody) continue;\n\n  try {\n    // 解析 feishuBody JSON\n    const parsed = JSON.parse(feishuBody);\n    const text = parsed.content?.text || '';\n    \n    // 按 \"数字.\" 分割成单条新闻\n    const blocks = text.split(/\\n(?=\\d+\\.\\s*【)/);\n    \n    for (const block of blocks) {\n      if (!block.trim()) continue;\n      \n      // 提取日期、分类、标题、来源\n      const dateMatch = block.match(/【([^】]+)】/);\n      const titleMatch = block.match(/【[^】]+】\\s*([^（]+?)\\s*（来源：([^）]+)）/);\n      const eventMatch = block.match(/- 发生了什么：([^\\n]+)/);\n      const industryMatch = block.match(/- 对行业意味着什么：([^\\n]+)/);\n      const humanMatch = block.match(/- 对人类生活意味着什么：([^\\n]+)/);\n      const linkMatch = block.match(/- 原文链接：([^\\n]+)/);\n      \n      if (titleMatch) {\n        const date = dateMatch ? dateMatch[1].trim() : '';\n        const title = titleMatch[1] ? titleMatch[1].trim() : '';\n        const source = titleMatch[2] ? titleMatch[2].trim() : '';\n        \n        newsData.push({\n          title: title,\n          link: linkMatch ? linkMatch[1].trim() : '',\n          summary: eventMatch ? eventMatch[1].trim() : '',\n          source: source,\n          date: date\n        });\n      }\n    }\n  } catch (e) {\n    console.error('解析 feishuBody 失败:', e);\n  }\n}\n\n// 如果解析成功，返回新闻数据\nif (newsData.length > 0) {\n  return newsData.map(item => ({\n    json: {\n      title: item.title,\n      link: item.link,\n      summary: item.summary,\n      source: item.source,\n      date: item.date\n    }\n  }));\n}\n\n// 如果没有数据，返回错误信息\nreturn [{\n  json: {\n    error: '解析新闻数据失败',\n    received: items.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        544,
+        624
+      ],
+      "id": "0b1d1283-6221-413e-bc62-b641d48d5286",
+      "name": "转换节点"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        656,
+        880
+      ],
+      "id": "c7d1de9c-7dd0-4848-a083-a2a2aca480dd",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "YOUR_APP_TOKEN",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "=Authorization",
+              "value": "=Bearer {{ $json.tenant_access_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"fields\": {\n        \"标题\": \"{{ $json.title }}\",\n        \"链接\": \"{{ $json.link }}\",\n        \"摘要\": \"{{ $json.summary }}\",\n        \"来源\": \"{{ $json.source }}\"\n    }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1072,
+        848
+      ],
+      "id": "030e2b64-70ad-47e8-a8e8-ca420969d16c",
+      "name": "飞书表格"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "获取token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "deep seek",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "发送消息": {
+      "main": [
+        []
+      ]
+    },
+    "deep seek": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "deep seek2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "deep seek1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "deep seek3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "deep seek2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "deep seek1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "deep seek3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript9": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript8": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "汇总数据": {
+      "main": [
+        [
+          {
+            "node": "翻译",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "二次翻译",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "翻译": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "二次翻译": {
+      "main": [
+        [
+          {
+            "node": "发送消息",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "转换节点",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "汇总数据",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "获取token": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "合并数据": {
+      "main": [
+        [
+          {
+            "node": "飞书表格",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "转换节点": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "合并数据",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9eb14818-3a42-4f61-b078-ad480c75feb5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fa1c0a861cdda9bce486927e6c6a87b8408ca6fec179471a6e4a8360e78f1394"
+  },
+  "nodeGroups": [],
+  "id": "RYlmmMyHumE5Hf5c",
+  "tags": []
+}
