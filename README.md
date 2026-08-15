@@ -1,43 +1,87 @@
-AI 新闻日报自动化工作流 / AI News Daily Automation Workflow
-基于 n8n 的 AI 新闻自动抓取 → DeepSeek 分析 → 飞书推送 → 多维表格存档
-An n8n-based workflow for automated AI news aggregation, analysis, and delivery to Feishu.
-📖 项目简介 / Overview
-中文版
-这是一个基于 n8n 构建的自动化工作流，每天定时从多个 RSS 源抓取 AI 和科技领域的新闻，通过 DeepSeek 大模型筛选出 5 条对普通人生活最有价值的动态，自动推送到飞书群，并同步存档到飞书多维表格。整个过程全自动运行，无需人工干预，帮助个人或团队高效获取行业资讯，节省每日信息筛选时间。
+# AI 新闻日报自动化工作流
 
-English
-This is an automated workflow built with n8n. It periodically fetches AI and tech news from multiple RSS sources, uses the DeepSeek LLM to filter the 5 most valuable updates for daily life, automatically pushes them to a Feishu group chat, and archives them into a Feishu multidimensional table. The entire process runs automatically without human intervention, helping individuals or teams efficiently stay informed and save time on daily information filtering.
+> 每天定时抓取 AI/科技新闻 → DeepSeek 分析 → 飞书群推送 → 多维表格存档
 
-使用方法
-1️⃣ 导入工作流
-打开 n8n → Import from File → 选择 workflow.json
-2️⃣ 替换占位符（必需）
-占位符	在哪里找
-YOUR_APP_ID	飞书开发者后台 → 应用凭证
-YOUR_APP_SECRET	飞书开发者后台 → 应用凭证
-YOUR_FEISHU_WEBHOOK	飞书群 → 群机器人 → 自定义机器人 → Webhook 地址
-YOUR_APP_TOKEN	多维表格链接中 base/ 后面的那串
-YOUR_TABLE_ID	多维表格链接中 table= 后面的那串
-YOUR_DEEPSEEK_API_KEY	DeepSeek 平台 → API Keys
-替换位置：
+## 功能
 
-YOUR_APP_ID / YOUR_APP_SECRET → 在“获取飞书 token”的 HTTP Request 节点的 Body 里
+- ⏰ 定时触发（可自定义时间）
+- 📡 4 个 RSS 源并行抓取
+- 🤖 DeepSeek AI 智能筛选与分类
+- 📊 自动分析行业影响与生活应用
+- 📱 飞书群消息推送（带日期、分类、分析、原文链接）
+- 💾 飞书多维表格自动存档
+- 🔄 动态 token 获取，无需手动刷新
 
-YOUR_FEISHU_WEBHOOK → 在“发送飞书消息”的 HTTP Request 节点的 URL 里
+## 技术栈
 
-YOUR_APP_TOKEN / YOUR_TABLE_ID → 在“写入多维表格”的 HTTP Request 节点的 URL 里
+- n8n（自动化编排）
+- DeepSeek API（AI 筛选与分析）
+- 飞书机器人（消息推送）
+- 飞书多维表格（数据存档）
+- RSS（新闻源聚合协议）
 
-YOUR_DEEPSEEK_API_KEY → 在“调用 DeepSeek”的 HTTP Request 节点的 Authentication 里
+## 使用方法
 
-3️⃣ 配置 RSS 源（可选）
-在 RSS Read 节点的 URL 里填你要订阅的地址，推荐：
+### 1. 导入工作流
 
-量子位：https://www.qbitai.com/feed
+1. 打开 n8n 界面（默认地址 `http://localhost:5678`）
+2. 点击右上角“Import from File”
+3. 选择本仓库中的 `n8n-ai-news-automation.json` 文件
 
-机器之心：https://www.jiqizhixin.com/rss
+### 2. 替换占位符
 
-36氪：https://36kr.com/feed
+导入后，需要替换以下占位符：
 
-爱范儿：https://www.ifanr.com/feed
+| 占位符 | 说明 | 获取位置 |
+|--------|------|----------|
+| `YOUR_APP_ID` | 飞书应用 ID | 飞书开发者后台 → 应用凭证 |
+| `YOUR_APP_SECRET` | 飞书应用密钥 | 飞书开发者后台 → 应用凭证 |
+| `YOUR_FEISHU_WEBHOOK` | 飞书机器人 Webhook | 飞书群 → 群机器人 → 自定义机器人 |
+| `YOUR_APP_TOKEN` | 多维表格 app_token | 表格链接中 `base/` 后面的那串 |
+| `YOUR_TABLE_ID` | 多维表格 table_id | 表格链接中 `table=` 后面的那串 |
+| `YOUR_DEEPSEEK_API_KEY` | DeepSeek API Key | DeepSeek 平台 → API Keys |
 
-就这么简单，把上面 6 个占位符替换成你自己的值，激活工作流就行。 😊
+### 3. 配置 RSS 源
+
+在 `RSS Read` 节点中替换为你想要的 RSS 地址，推荐：
+
+- 量子位：`https://www.qbitai.com/feed`
+- 机器之心：`https://www.jiqizhixin.com/rss`
+- 36氪：`https://36kr.com/feed`
+- 爱范儿：`https://www.ifanr.com/feed`
+
+### 4. 激活工作流
+
+点击右上角 **Active** 开关，工作流将在设定时间自动运行。
+
+## 效果展示
+
+### 飞书群消息
+
+![飞书推送效果](./demo.png)
+
+### 多维表格存档
+
+![多维表格存档效果](./table-demo.png)
+
+## 更新日志
+
+### 2026-08-14
+
+- 新增飞书多维表格自动存档功能
+- 使用动态 token 获取方式，无需手动刷新
+- 支持 4 个 RSS 源并行抓取，汇总后 AI 二次筛选
+- 修复 JSON 解析错误
+- 修复顺序偏见问题
+
+## 安全说明
+
+导出的 JSON 文件中，敏感信息已全部替换为占位符。使用时请替换为实际值。
+
+## 许可证
+
+MIT License © 2026 [vine20071112]
+
+## 作者
+
+- GitHub:https://github.com/vine20071112
